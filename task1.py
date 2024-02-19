@@ -1,5 +1,8 @@
 """
-task1 
+Create a csv file containing DAM & RTM prices
+at hourly intervals from Jan 1 to Jan 31, 
+2022 for HB_NORTH. The csv file should be
+named ‘task_1.csv’ with only 3 columns. 
 """
 from csv import DictReader, DictWriter
 from datetime import datetime, timedelta
@@ -35,7 +38,7 @@ def calculate_hourly_rtm(rtm_data):
     )
 
 
-def create_task_1(dam_data, rtm_data):
+def _hourly_intervals(dam_data, rtm_data):
     """
     Task 1: Create CSV file with hourly DAM and RTM prices.
     """
@@ -51,29 +54,20 @@ def create_task_1(dam_data, rtm_data):
         for i in range(0, len(rtm_hb_north), 4)
     ]
 
-    start_date = datetime(2022, 1, 1)
-    end_date = datetime(2022, 1, 31, 23)
     hourly_intervals = [
-        start_date + timedelta(hours=i)
-        for i in range(int((end_date - start_date).total_seconds() / 3600) + 1)
+        datetime(2022, 1, 1) + timedelta(hours=i) for i in range(24 * 31)
     ]
 
-    result = []
-    c = 0
-
-    for interval in hourly_intervals:
-        if c < len(rtm_av):
-            for dam_entry in dam_hb_north:
-                if dam_entry["datetime"] == interval:
-                    result.append(
-                        {
-                            "date": interval.strftime("%Y-%m-%d %H:%M:%S"),
-                            "dam": dam_entry["dam"],
-                            "rtm": f"{rtm_av[c]:.2f}",
-                        }
-                    )
-                    break
-            c += 1
+    result = [
+        {
+            "date": interval.strftime("%Y-%m-%d %H:%M:%S"),
+            "dam": dam_entry["dam"],
+            "rtm": f"{rtm_entry:.2f}",
+        }
+        for interval, dam_entry, rtm_entry in zip(
+            hourly_intervals, dam_hb_north, rtm_av
+        )
+    ]
 
     output_file_path = "task_1.csv"
 
@@ -92,8 +86,8 @@ def main():
     dam_data = load_csv("DAM_Prices_2022.csv")
     rtm_data = load_csv("RTM_Prices_2022.csv")
 
-    task_1_filepath = create_task_1(dam_data, rtm_data)
-    print(f"Task 1 created at: {task_1_filepath}")
+    task_1_filepath = _hourly_intervals(dam_data, rtm_data)
+    print(task_1_filepath)
 
 
 if __name__ == "__main__":
